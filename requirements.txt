@@ -4,3 +4,5 @@ geopandas
 ipdb
 ipykernel
 scikit-learn
+rasterio
+rasterstats
