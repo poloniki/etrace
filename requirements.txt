@@ -5,3 +5,7 @@ matplotlib
 seaborn
 geopandas
 scipy
+ipdb
+ipykernel
+rasterio
+rasterstats
