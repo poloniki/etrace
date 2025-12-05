@@ -18,5 +18,7 @@ def upload_to_gcs(bucket_name: str, destination_blob_name: str, source_file_name
 if __name__ == "__main__":
     # Example usage
     upload_to_gcs(
-        "etrace-data", "data/area.ipynb", "/Users/ak/code/AlexisKiehn/etrace/area.ipynb"
+        "etrace-data",
+        "data/koppen_tif_files/",
+        "/Users/ak/code/AlexisKiehn/etrace/koppen_tif_files/koppen_1901_1930.tif",
     )

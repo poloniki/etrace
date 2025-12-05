@@ -48,10 +48,21 @@ st.set_page_config(
 # ---------------------------------------------------------
 # Header
 # ---------------------------------------------------------
-st.title("🌍 E-TRACE Dashboard")
+st.markdown("<h1 style='text-align: center; font-size: 4rem;'>🌍 E-TRACE Dashboard</h1>", unsafe_allow_html=True)
 st.markdown("""
-Welcome to **E-TRACE** — European Tourism Regional Analysis & Climate Effects.
-
+    <p style='text-align: center; font-size: 1.2rem;'>
+    Welcome to <span style='color: #1f77b4; font-weight: bold;'>E</span>-TRACE —
+    <span style='color: #1f77b4; font-weight: bold;'>E</span>uropean
+    <span style='color: #1f77b4; font-weight: bold;'>T</span>ourism
+    <span style='color: #1f77b4; font-weight: bold;'>R</span>egional
+    <span style='color: #1f77b4; font-weight: bold;'>A</span>nalysis &
+    <span style='color: #1f77b4; font-weight: bold;'>C</span>limate
+    <span style='color: #1f77b4; font-weight: bold;'>E</span>ffects.
+    </p>
+    """,
+    unsafe_allow_html=True
+)
+st.markdown("""
 This is the first version of our interactive website, where we will:
 - Upload and explore the dataset
 - Visualize trends (tourism activity, population, GDP, employment, climate variables…)
@@ -138,6 +149,7 @@ st.write(df.describe(include="all"))
 # ---------------------------------------------------------
 # Sidebar Navigation (for future pages)
 # ---------------------------------------------------------
+
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to:", ["Home", "Exploration", "Mapping", "Models"])
 
