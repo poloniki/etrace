@@ -12,3 +12,7 @@ rasterstats
 google-cloud-bigquery
 db-dtypes
 google-cloud-storage
+plotly
+pydeck
+streamlit
+geojson
