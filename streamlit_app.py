@@ -5,7 +5,7 @@ import plotly.express as px
 import pydeck as pdk
 import json
 import geojson
-from etrace.load_data import load_from_bq
+from etrace.load_data import load_from_bq, load_from_bucket
 from google.cloud import storage
 
 # ---------------------------------------------------------
@@ -68,7 +68,7 @@ st.divider()
 # ---------------------------------------------------------
 st.header("📁 Load Your Processed Dataset")
 
-df = load_from_bq("SELECT * FROM `aklewagonproject.etrace.cleaned_final_dataset`")
+df = load_from_bq("SELECT * FROM `aklewagonproject.etrace.cleaned_final_jaume_dataset`")
 
 st.session_state["df_clean"] = df
 
@@ -196,13 +196,13 @@ elif page == "Mapping":
         st.warning("Something went wrong uploading the data.")
         st.stop()
 
-    # Load NUTS2 GeoJSON
+    # Load NUTS2 GeoJSON from google cloud
     client = storage.Client()
     bucket = client.bucket("etrace-data")
     blob = bucket.blob("data/raw_data/nuts2_geo.geojson")
 
     geojson_bytes = blob.download_as_bytes()
-    nuts2_geo = json.loads(geojson_bytes.decode("utf-8"))
+    nuts2_geo = geojson.loads(geojson_bytes.decode("utf-8"))
 
     # Ensure 'geo' column exists
     if "geo" not in df_clean.columns:
@@ -222,7 +222,6 @@ elif page == "Mapping":
     selected_year = st.slider("Select Year", min(years), max(years), min(years))
 
     df_year = df_clean[df_clean["year"] == selected_year]
-
 
     all_geo2= []
     for each in nuts2_geo["features"]:
