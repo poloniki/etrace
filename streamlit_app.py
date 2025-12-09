@@ -420,7 +420,7 @@ elif page == "Mapping":
 
     def highlight_selected_column(df, column_name):
         """
-        Resalta la columna seleccionada con un color especial
+        Highlights selected column with a special color
         """
         styles = pd.DataFrame('', index=df.index, columns=df.columns)
         if column_name in df.columns:
