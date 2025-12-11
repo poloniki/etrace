@@ -1083,9 +1083,9 @@ elif page == "Model":
     )
 
 
-# -------------------------------------------
-# Build DATA FOR 3D COLUMN LAYER
-# -------------------------------------------
+    # -------------------------------------------
+    # Build DATA FOR 3D COLUMN LAYER
+    # -------------------------------------------
 
     columns_data = []
 
@@ -1189,6 +1189,109 @@ elif page == "Model":
             }
         )
         )
+
+    st.subheader("📉 Change in Tourism Compared to 2020")
+
+    # -----------------------------------------
+    # 1) Extract baseline (2020) and selected year
+    # -----------------------------------------
+
+    baseline_year = 2020
+
+
+    df_base = df[df['Overnight_Stays'] == baseline_year][[GEO_COL, NIGHTS_COL]].copy()
+    df_base = df_base.rename(columns={NIGHTS_COL: "base_nights"})
+
+    df_future = pred_df[pred_df[YEAR_COL] == selected_year][[GEO_COL, NIGHTS_COL]].copy()
+    df_future = df_future.rename(columns={NIGHTS_COL: "future_nights"})
+
+
+    df_2020 = df[df['Year'] == 2020][[GEO_COL, NIGHTS_COL]].copy()
+    difference_df = df_future.merge(df_2020, on=["NUTS_ID"], how="inner")
+    difference_df["delta"] = difference_df["future_nights"] - difference_df["Overnight_Stays"]
+
+    # Normalise delta for coloring (min → -1, max → +1)
+    max_abs = max(abs(difference_df["delta"].min()), abs(difference_df["delta"].max()))
+    difference_df = difference_df.dropna(subset=["delta"])
+
+    difference_df["scaled"] = difference_df["delta"] / max_abs
+
+    # Diverging color scale: red (decrease) → yellow (neutral) → green (increase)
+    def diverging_color(v):
+        """
+        v in [-1, 1]
+        """
+        if pd.isna(v):
+            return [200, 200, 200, 80]
+
+        if v < 0:
+            # Negative → red to yellow
+            r = 255
+            g = int(200 * (1 + v))   # v = -1 → g=0, v=0 → g=200
+            b = 0
+        else:
+            # Positive → yellow to green
+            r = int(255 * (1 - v))  # v=1 → 0, v=0 → 255
+            g = 255
+            b = 0
+
+        return [r, g, b, 200]
+
+    difference_df["color"] = difference_df["scaled"].apply(diverging_color)
+
+    # Attach delta + color to geojson
+    for feature in nuts2_geo["features"]:
+        geo_id = feature["properties"]["NUTS_ID"]
+
+        match = difference_df[difference_df[GEO_COL] == geo_id]
+
+        if not match.empty:
+            feature["properties"]["delta"] = float(match["delta"].values[0])
+            feature["properties"]["color"] = match["color"].values[0]
+        else:
+            feature["properties"]["delta"] = None
+            feature["properties"]["color"] = [220, 220, 220, 80]
+
+    st.subheader(f"🗺️ Change in Overnight Stays: {baseline_year} → {selected_year}")
+
+
+    import numpy as np
+
+    difference_df["color"] = np.repeat([48, 18, 59], len(difference_df)).reshape(-1, 3).tolist()
+    data_layer = pdk.Layer("DataLayer", data=difference_df)
+
+
+    delta_layer = pdk.Layer(
+        "GeoJsonLayer",
+        nuts2_geo,
+        stroked=True,
+        filled=True,
+        get_fill_color="properties.color",
+        get_line_color=[80, 80, 80],
+        line_width_min_pixels=1,
+        pickable=True,
+    )
+
+    view_state = pdk.ViewState(
+        latitude=50,
+        longitude=10,
+        zoom=3.3,
+        bearing=0,
+        pitch=30,
+    )
+
+    st.pydeck_chart(
+        pdk.Deck(
+            map_style="mapbox://styles/mapbox/light-v9",
+            layers=[delta_layer, data_layer],
+            initial_view_state=view_state,
+            tooltip={
+                "text": "NUTS: {NUTS_ID}\nΔ Nights: {delta}"
+            },
+        )
+    )
+
+
 
 
 # ---------------------------------------------------------
