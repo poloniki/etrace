@@ -421,9 +421,9 @@ elif page == "Mapping":
 
     df_year = df_clean[df_clean["Year"] == selected_year]
 
-    # 3D stacked map style
+    # map style
     map_style_choice = st.radio(
-        "Map Style", ["Flat Map", "3D Stacked Map"], horizontal=True
+        "Map Style", ["Flat Map"], horizontal=True
     )
 
     all_geo2 = []
@@ -752,6 +752,7 @@ elif page == "Model":
     # Clean column types
     pred_df[SCENARIO_COL] = pred_df[SCENARIO_COL].str.strip()
     pred_df[GEO_COL] = pred_df[GEO_COL].str.strip()
+    pred_df[NAME_COL] = pred_df[NAME_COL].str.strip()
 
     # Convert to numeric
     pred_df[YEAR_COL] = pd.to_numeric(pred_df[YEAR_COL], errors="coerce").astype(int)
@@ -786,10 +787,23 @@ elif page == "Model":
         for _, row in region_options.iterrows()
     }
 
-    selected_label = st.selectbox(
-        "NUTS-2 region:",
-        list(region_label_to_code.keys()),
+    region_name_options = (
+        df_ssp[[NAME_COL]]
+        .drop_duplicates()
+        .sort_values(NAME_COL)
     )
+
+    # Show FULL name but keep the code
+    region_label_name = {
+        f"{row[NAME_COL]} ({row[NAME_COL]})": row[NAME_COL]
+        for _, row in region_name_options.iterrows()
+    }
+
+    selected_label = st.selectbox(
+            "NUTS-2 region:",
+            list(region_label_to_code.keys()),
+        )
+
     selected_geo = region_label_to_code[selected_label]
 
     df_region = df_ssp[df_ssp[GEO_COL] == selected_geo]
@@ -827,6 +841,7 @@ elif page == "Model":
     row = row.iloc[0]
     nights_pred = float(row[NIGHTS_COL])
     region_name = row[GEO_COL]
+    region_name_col = row[NAME_COL]
 
 
     # Find the correct NUTS_NAME for the region
@@ -838,10 +853,7 @@ elif page == "Model":
         if feat["properties"]["NUTS_ID"] == nuts_id
     ]
 
-    st.subheader(f"📍 Region: **{region_name}**")
-
-    # Plotting the map of the nuts region selected
-    st.subheader(f"🗺️ Map of {region_name}")
+    st.subheader(f"📍 Region: **{region_name_col}**")
 
     ### --- FULL MAP WITH SELECTED REGION HIGHLIGHTED --- ###
 
@@ -990,8 +1002,12 @@ elif page == "Model":
         match = df_map[df_map[GEO_COL] == geo_id]
 
         if not match.empty:
-            feature["properties"]["color"] = match["color"].values[0]
-            feature["properties"]["overnight"] = float(match[NIGHTS_COL].values[0])
+            try:
+                feature["properties"]["color"] = match["color"].values[0]
+                feature["properties"]["overnight"] = float(match[NIGHTS_COL].values[0])
+            except:
+                feature["properties"]["overnight"] = None
+
         else:
             feature["properties"]["color"] = [200, 200, 200, 30]  # grey
             feature["properties"]["overnight"] = None
@@ -1003,11 +1019,12 @@ elif page == "Model":
     # statistics
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Min value", f"{vmin:.2f}")
+        st.metric("Min value", f"{vmin:,.2f}")
     with col2:
-        st.metric("Average value", f"{df_year[NIGHTS_COL].mean():.2f}")
+        st.metric("Average value", f"{df_year[NIGHTS_COL].mean():,.2f}")
     with col3:
-        st.metric("Max value", f"{vmax:.2f}")
+        st.metric("Max value", f"{vmax:,.2f}")
+
 
     # visual grad ( nabla)
     st.markdown(f"""
@@ -1031,6 +1048,7 @@ elif page == "Model":
     height_scale = 5000
     df_year["height"] = df_year["scaled_value"] * height_scale
 
+
     # Attaching height to geojson
     for feature in nuts2_geo["features"]:
         geo_id = feature["properties"]["NUTS_ID"]
@@ -1053,6 +1071,10 @@ elif page == "Model":
         get_fill_color="color",
         pickable=True,
     )
+
+    #  Nikita line
+    df_year= df_year.astype(float, errors="ignore").drop(columns=[None])
+
 
     # PyDeck layer
     data_layer = pdk.Layer(
@@ -1140,6 +1162,7 @@ elif page == "Model":
         layer_to_show = layer
     else:
         layer_to_show = extruded_layer
+
 
 
     if map_style_choice == "Flat Map":
