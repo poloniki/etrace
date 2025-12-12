@@ -82,7 +82,7 @@ SSP_SCENARIOS = {
 
 # Important useful functions
 
-
+@st.cache_data(ttl=900)  # Cache for 15 minutes
 def colormap(v):
     if v is None or pd.isna(v):
         return [200, 200, 200]
@@ -114,7 +114,7 @@ def colormap(v):
     idx = min(int(v * (len(turbo) - 1)), len(turbo) - 1)
     return turbo[idx]
 
-
+@st.cache_data(ttl=900)  # Cache for 15 minutes
 def highlight_selected_column(df, column_name):
     """
     Highlights selected column with a special color
@@ -126,13 +126,13 @@ def highlight_selected_column(df, column_name):
         )
     return styles
 
-
+@st.cache_data(ttl=900)  # Cache for 15 minutes
 def compute_centroid(feature):
     geom = shape(feature["geometry"])
     c = geom.centroid
     return c.y, c.x  # lat, lon order for pydeck
 
-
+@st.cache_data(ttl=900)  # Cache for 15 minutes
 def extract_all_coords(geometry):
     coords = geometry["coordinates"]
     geom_type = geometry["type"]
