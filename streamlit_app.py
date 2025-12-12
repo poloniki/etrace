@@ -91,7 +91,7 @@ SSP_SCENARIOS = {
 
 # Important useful functions
 
-
+@st.cache_data(ttl=900)  # Cache for 15 minutes
 def colormap(v):
     if v is None or pd.isna(v):
         return [200, 200, 200]
@@ -123,7 +123,7 @@ def colormap(v):
     idx = min(int(v * (len(turbo) - 1)), len(turbo) - 1)
     return turbo[idx]
 
-
+@st.cache_data(ttl=900)  # Cache for 15 minutes
 def highlight_selected_column(df, column_name):
     """
     Highlights selected column with a special color
@@ -135,13 +135,13 @@ def highlight_selected_column(df, column_name):
         )
     return styles
 
-
+@st.cache_data(ttl=900)  # Cache for 15 minutes
 def compute_centroid(feature):
     geom = shape(feature["geometry"])
     c = geom.centroid
     return c.y, c.x  # lat, lon order for pydeck
 
-
+@st.cache_data(ttl=900)  # Cache for 15 minutes
 def extract_all_coords(geometry):
     coords = geometry["coordinates"]
     geom_type = geometry["type"]
@@ -297,11 +297,11 @@ def load_nuts2_geo():
 
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
-def load_predictions_v3():
-    """Load and parse predictions V3 CSV with complex formatting."""
+def load_predictions_v5():
+    """Load and parse predictions V5 CSV with complex formatting."""
     bucket = "etrace-data"
-    blob = "data/raw_data/FINAL_DATAFRAME_PREDICTIONS_V3.csv"
-    local_path = "/tmp/FINAL_DATAFRAME_PREDICTIONS_V3.csv"
+    blob = "data/raw_data/FINAL_DATAFRAME_PREDICTIONS_V5.csv"
+    local_path = "/tmp/FINAL_DATAFRAME_PREDICTIONS_V5.csv"
 
     csv_path = load_from_bucket(bucket, blob, local_path)
 
@@ -798,7 +798,7 @@ elif page == "Model":
     nuts2_geo = load_nuts2_geo()
 
     # Load predictions data (cached)
-    pred_df = load_predictions_v3()
+    pred_df = load_predictions_v5()
 
     # Column definitions for compatibility
     SCENARIO_COL = "Scenario"
