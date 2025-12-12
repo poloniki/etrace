@@ -417,7 +417,7 @@ if page == "Exploration":
         # ------------------------
 
         # Updated Section Header with Region Name
-        st.header(f"📈 {region} Historical Metrics")
+        st.header(f"{region} Historical Metrics")
 
         numeric_columns = df_region.select_dtypes(include=["float64", "int64"]).columns
 
@@ -1270,7 +1270,7 @@ elif page == "Model":
             feature["properties"]["delta"] = None
             feature["properties"]["color"] = [220, 220, 220, 80]
 
-    st.subheader(f"🗺️ Overnight Stays: {baseline_year} → {selected_year}")
+    st.subheader(f"Overnight Stays: {baseline_year} → {selected_year}")
 
     import numpy as np
 
